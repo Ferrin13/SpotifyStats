@@ -23,7 +23,8 @@ class UserTrackComponent extends React.Component {
   }
 
   componentDidMount() {
-      this.loadTracks(this.loadLibrarySummary);
+    this.refreshTracks()
+    .then(() => this.loadTracks(this.loadLibrarySummary));
   }
 
   switchSort = (sortId) => {
@@ -59,6 +60,10 @@ class UserTrackComponent extends React.Component {
         loadingSummary: false
       })
     })
+  }
+
+  refreshTracks = () => {
+    return axios.get('/spotify/refresh-tracks')
   }
 
   doubleToPercent(input) {

@@ -37,7 +37,13 @@ namespace SpotifyStats.Controllers
     public async Task<ActionResult<UserLibrarySummaryDto>> GetUserTracksSummary()
     {
       var summary = await _spotifyLibrary.GetUserTracksSummary();
-      return summary;
+      return Ok(summary);
+    }
+
+    [HttpGet("refresh-tracks")]
+    public async Task RefreshTracks()
+    {
+      await _spotifyLibrary.RefreshSpotifyTracks();
     }
   }
 }

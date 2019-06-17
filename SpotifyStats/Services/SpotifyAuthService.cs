@@ -23,8 +23,8 @@ namespace SpotifyStats.Services
       _config = config;
     }
 
-    public string AccessToken => _spotifyAuthorizationDto.Access_Token;
-    public async Task AcquireAccessToken(string accessCode)
+    public string AccessToken => _spotifyAuthorizationDto?.Access_Token;
+    public async Task<bool> AcquireAccessToken(string accessCode)
     {
       var requestBody = new List<KeyValuePair<string, string>>()
       {
@@ -40,15 +40,16 @@ namespace SpotifyStats.Services
         var msg = tokenRequestMessage(requestBody);
         var response = await httpClient.SendAsync(msg);
 
-        if (response.IsSuccessStatusCode)
-        {
-          _tokenAcquisitionTime = DateTime.Now;
-          _spotifyAuthorizationDto = await response.Content.ReadAsAsync<SpotifyAuthorizationDto>();
-        }
+        if (!response.IsSuccessStatusCode) { return false; }
+
+        _tokenAcquisitionTime = DateTime.Now;
+        _spotifyAuthorizationDto = await response.Content.ReadAsAsync<SpotifyAuthorizationDto>();
+        return true;
+
       }
     }
 
-    public async Task RefreshAccessToken()
+    public async Task<bool> RefreshAccessToken()
     {
       if(_spotifyAuthorizationDto == null) { throw new InvalidOperationException("Authorization object is null"); }
 
@@ -63,11 +64,11 @@ namespace SpotifyStats.Services
         var msg = tokenRequestMessage(requestBody);
         var response = await httpClient.SendAsync(msg);
 
-        if (response.IsSuccessStatusCode)
-        {
-          _tokenAcquisitionTime = DateTime.Now;
-          _spotifyAuthorizationDto = await response.Content.ReadAsAsync<SpotifyAuthorizationDto>();
-        }
+        if (!response.IsSuccessStatusCode) { return false; }
+
+        _tokenAcquisitionTime = DateTime.Now;
+        _spotifyAuthorizationDto = await response.Content.ReadAsAsync<SpotifyAuthorizationDto>();
+        return true;
       }
     }
 

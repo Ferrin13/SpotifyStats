@@ -124,7 +124,7 @@ namespace SpotifyStats.Services
 
     private async Task<T> nonNullAuthorizedSpotifyRequest<T>(string path)
     {
-      if (string.IsNullOrWhiteSpace(_spotifyAuth.AccessToken)) { throw new ArgumentNullException(nameof(_spotifyAuth.AccessToken)); }
+      if (string.IsNullOrWhiteSpace(_spotifyAuth.AccessToken)) { throw new InvalidOperationException("Access token is null"); }
 
       if (_spotifyAuth.IsTokenExpired())
       {

@@ -9,8 +9,8 @@ namespace SpotifyStats.Services
   public interface ISpotifyAuthService
   {
     string AccessToken { get;  }
-    Task AcquireAccessToken(string accessCode);
-    Task RefreshAccessToken();
+    Task<bool> AcquireAccessToken(string accessCode);
+    Task<bool> RefreshAccessToken();
     bool IsTokenExpired();
   }
 }

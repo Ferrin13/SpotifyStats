@@ -33,8 +33,9 @@ namespace SpotifyStats.Controllers
     public async Task<ActionResult> ReceiveCode([FromBody]CodeObject codeObject)
     {
       var accessCode = codeObject.Code;
-      await _spotifyAuth.AcquireAccessToken(accessCode);
-      return Ok();
+      var acquiredToken = await _spotifyAuth.AcquireAccessToken(accessCode);
+
+      return acquiredToken ? (ActionResult) Ok() : BadRequest("Could not acquire access token with given code"); //This should have some more granular response types
     }
    
     public class CodeObject

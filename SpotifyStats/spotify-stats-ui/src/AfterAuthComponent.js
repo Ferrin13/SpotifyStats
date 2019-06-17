@@ -24,6 +24,7 @@ class AfterAuthComponent extends React.Component {
     if(code) {
       this.sendCode(code)
       .then(res => this.setState({authComplete: true}))
+      .catch(error => this.setState({authFailed: true}))
     } else if(search.get('error')) {
       this.setState({authFailed: true})
     }
@@ -43,7 +44,7 @@ class AfterAuthComponent extends React.Component {
     return( 
       this.state.authComplete ? 
       <Redirect to="/user-tracks"></Redirect>
-      : this.state.authFailed && <div> AUTHORIZATION FAILED</div>
+      : this.state.authFailed && <div style={{display: "flex", justifyContent: "center"}} > AUTHORIZATION FAILED</div>
     );
   }
 }

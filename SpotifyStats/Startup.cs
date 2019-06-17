@@ -34,6 +34,23 @@ namespace SpotifyStats
       Configuration = configuration;
     }
 
+    public Startup(IHostingEnvironment env)
+    {
+      var builder = new ConfigurationBuilder()
+        .SetBasePath(env.ContentRootPath)
+        .AddJsonFile("appsettings.json",
+          optional: false,
+          reloadOnChange: true)
+        .AddEnvironmentVariables();
+
+      if (env.IsDevelopment())
+      {
+        builder.AddUserSecrets<Startup>();
+      }
+
+      Configuration = builder.Build();
+    }
+
     public IConfiguration Configuration { get; }
 
     // This method gets called by the runtime. Use this method to add services to the container.

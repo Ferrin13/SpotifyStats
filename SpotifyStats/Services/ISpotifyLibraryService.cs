@@ -9,7 +9,7 @@ namespace SpotifyStats.Services
   public interface ISpotifyLibraryService
   {
     bool AreTracksLoaded { get; }
-    Task LoadSpotifyTracks();
+    Task RefreshSpotifyTracks();
     Task<UserLibrarySummaryDto> GetUserTracksSummary();
     Task<List<UserTrackWithFeaturesDto>> GetUserTracks();
   }

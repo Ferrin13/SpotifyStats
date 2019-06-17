@@ -5,8 +5,10 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using System.Web;
+using Microsoft.AspNetCore.Identity.UI.Pages.Internal.Account;
 using Microsoft.Extensions.Configuration;
 using SpotifyStats.Models;
+using SpotifyStats.Utilities;
 
 namespace SpotifyStats.Services
 {
@@ -19,16 +21,70 @@ namespace SpotifyStats.Services
     private const string SPOTIFY_TRACK_FEATURES_PATH = "/v1/audio-features";
     private const int USER_TRACKS_PER_REQUEST_MAX = 50;
 
-    private List<UserTrackWithFeaturesDto> _tracksWithFeatures;
+    private AsyncLazy<List<UserTrackWithFeaturesDto>> _tracksWithFeatures;
 
     public bool AreTracksLoaded => _tracksWithFeatures != null;
 
-    public SpotifyLibraryService(IConfiguration config, ISpotifyAuthService spotifyAuth) : base()
+    public SpotifyLibraryService(IConfiguration config, ISpotifyAuthService spotifyAuth)
     {
       _config = config;
       _spotifyAuth = spotifyAuth;
+      _tracksWithFeatures = new AsyncLazy<List<UserTrackWithFeaturesDto>>(async () => await loadSpotifyTracks());
     }
-    public async Task LoadSpotifyTracks()
+
+    public async Task RefreshSpotifyTracks()
+    {
+      var tracksWithFeatures = await loadSpotifyTracks();
+      _tracksWithFeatures = new AsyncLazy<List<UserTrackWithFeaturesDto>>(async() => await loadSpotifyTracks());
+    }
+
+    public async Task<UserLibrarySummaryDto> GetUserTracksSummary()
+    {
+      var tracksWithFeatures = await _tracksWithFeatures;
+
+      var singleArtistPerSong = tracksWithFeatures
+        .SelectMany(twf => twf.Track.ArtistNames.Select(a => new Tuple<string, UserTrackWithFeaturesDto>(a, twf))).ToList();
+
+      var favArtist = singleArtistPerSong.GroupBy(tuple => tuple.Item1)
+        .OrderByDescending(g => g.Count())
+        .Select(g => g.Key).FirstOrDefault();
+
+      var libraryInfo = new UserLibraryInfoDto()
+      {
+        FavoriteArtistName = favArtist,
+        SongsPerArtist = (double)singleArtistPerSong.Count() / singleArtistPerSong.GroupBy(tuple => tuple.Item1).Count(),
+        ShortestSongName = tracksWithFeatures.OrderBy(twf => twf.Track.DurationMs).Select(twf => twf.Track.Name).First(),
+        LongestSongName = tracksWithFeatures.OrderByDescending(twf => twf.Track.DurationMs).Select(twf => twf.Track.Name).First()
+      };
+
+      var tracksAverages = new UserTracksAveragesDto()
+      {
+        AcousticnessAverage = getTrackFeatureAverage(tracksWithFeatures, twf => twf.Features.Acousticness),
+        DanceabilityAverage = getTrackFeatureAverage(tracksWithFeatures, twf => twf.Features.Danceability),
+        EnergyAverage = getTrackFeatureAverage(tracksWithFeatures, twf => twf.Features.Energy),
+        InstrumentalnessAverage = getTrackFeatureAverage(tracksWithFeatures, twf => twf.Features.Instrumentalness),
+        LengthMsAverage = getTrackFeatureAverage(tracksWithFeatures, twf => twf.Track.DurationMs),
+        LoudnessAverage = getTrackFeatureAverage(tracksWithFeatures, twf => twf.Features.Loudness),
+        PopularityAverage = getTrackFeatureAverage(tracksWithFeatures, twf => twf.Track.Popularity),
+        TempoAverage = getTrackFeatureAverage(tracksWithFeatures, twf => twf.Features.Tempo),
+        ValenceAverage = getTrackFeatureAverage(tracksWithFeatures, twf => twf.Features.Valence)
+      };
+
+      var librarySummaryDto = new UserLibrarySummaryDto()
+      {
+        LibraryInfo = libraryInfo,
+        TrackAverages = tracksAverages
+      };
+
+      return librarySummaryDto;
+    }
+
+    public async Task<List<UserTrackWithFeaturesDto>> GetUserTracks()
+    {
+      return await _tracksWithFeatures;
+    }
+
+    private async Task<List<UserTrackWithFeaturesDto>> loadSpotifyTracks()
     {
       var tracksWithFeatures = new List<UserTrackWithFeaturesDto>();
       var offset = 0;
@@ -46,51 +102,7 @@ namespace SpotifyStats.Services
         offset += USER_TRACKS_PER_REQUEST_MAX;
       } while (!string.IsNullOrEmpty(tracksPart.Next));
 
-      _tracksWithFeatures = tracksWithFeatures;
-    }
-
-    public async Task<UserLibrarySummaryDto> GetUserTracksSummary()
-    {
-      if (!AreTracksLoaded)
-      {
-        await LoadSpotifyTracks();
-      }
-
-      var singleArtistPerSong = _tracksWithFeatures
-        .SelectMany(twf => twf.Track.ArtistNames.Select(a => new Tuple<string, UserTrackWithFeaturesDto>(a, twf))).ToList();
-
-      var favArtist = singleArtistPerSong.GroupBy(tuple => tuple.Item1)
-        .OrderByDescending(g => g.Count())
-        .Select(g => g.Key).FirstOrDefault();
-
-      var libraryInfo = new UserLibraryInfoDto()
-      {
-        FavoriteArtistName = favArtist,
-        SongsPerArtist = (double)singleArtistPerSong.Count() / singleArtistPerSong.GroupBy(tuple => tuple.Item1).Count(),
-        ShortestSongName = _tracksWithFeatures.OrderBy(twf => twf.Track.DurationMs).Select(twf => twf.Track.Name).First(),
-        LongestSongName = _tracksWithFeatures.OrderByDescending(twf => twf.Track.DurationMs).Select(twf => twf.Track.Name).First()
-      };
-
-      var tracksAverages = new UserTracksAveragesDto()
-      {
-        AcousticnessAverage = getTrackFeatureAverage(_tracksWithFeatures, twf => twf.Features.Acousticness),
-        DanceabilityAverage = getTrackFeatureAverage(_tracksWithFeatures, twf => twf.Features.Danceability),
-        EnergyAverage = getTrackFeatureAverage(_tracksWithFeatures, twf => twf.Features.Energy),
-        InstrumentalnessAverage = getTrackFeatureAverage(_tracksWithFeatures, twf => twf.Features.Instrumentalness),
-        LengthMsAverage = getTrackFeatureAverage(_tracksWithFeatures, twf => twf.Track.DurationMs),
-        LoudnessAverage = getTrackFeatureAverage(_tracksWithFeatures, twf => twf.Features.Loudness),
-        PopularityAverage = getTrackFeatureAverage(_tracksWithFeatures, twf => twf.Track.Popularity),
-        TempoAverage = getTrackFeatureAverage(_tracksWithFeatures, twf => twf.Features.Tempo),
-        ValenceAverage = getTrackFeatureAverage(_tracksWithFeatures, twf => twf.Features.Valence)
-      };
-
-      var librarySummaryDto = new UserLibrarySummaryDto()
-      {
-        LibraryInfo = libraryInfo,
-        TrackAverages = tracksAverages
-      };
-
-      return librarySummaryDto;
+      return tracksWithFeatures;
     }
 
     private double getTrackFeatureAverage(IEnumerable<UserTrackWithFeaturesDto> featuresList, Func<UserTrackWithFeaturesDto, double> fieldSelector)
@@ -98,15 +110,7 @@ namespace SpotifyStats.Services
       return featuresList.Select(fieldSelector).Average();
     }
 
-    public async Task<List<UserTrackWithFeaturesDto>> GetUserTracks()
-    {
-      if (!AreTracksLoaded)
-      {
-        await LoadSpotifyTracks();
-      }
 
-      return _tracksWithFeatures;
-    }
 
     private async Task<SpotifyUserLibraryTracksDto> getUserTracks(int offset, int limit)
     {

@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import { BrowserRouter as Router, Route } from "react-router-dom";
 import AfterAuthComponent from './AfterAuthComponent';
 import UserTrackComponent from './UserTracksComponent';
-
+var Config = require('./config')
 
 function AppRouter() {
   return(
@@ -23,12 +23,13 @@ class AppBase extends React.Component {
 
   routeChange() {
     const querystring = require('querystring');
-    let client_id = '9283b48f67a94757b9c9a6f1e01f1599';
-    let redirect_uri = 'http://localhost:3000/after-auth';
+    // let client_id = '9283b48f67a94757b9c9a6f1e01f1599';
+    let client_id = Config.clientId;
+    let redirect_uri = `${Config.baseUrl}/after-auth`;
     let response_type = 'code'; 
     let scope = "user-top-read user-read-recently-played user-read-private user-read-email user-library-read"
     let queryParams = querystring.stringify({client_id, redirect_uri, response_type, scope});
-    let path = `https://accounts.spotify.com/authorize?${queryParams}`;
+    let path = `${Config.spotifyAccountsUrl}/authorize?${queryParams}`;
     window.location.href = path;
   }
 

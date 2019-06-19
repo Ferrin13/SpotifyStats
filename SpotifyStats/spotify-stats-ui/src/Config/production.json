@@ -1,3 +1,3 @@
 {
-  "baseBackendUrl": "http://spotify-stats.us-east-1.elasticbeanstalk.com/api"
+  "baseBackendUrl": "https://spotify-stats.us-east-1.elasticbeanstalk.com/api"
 }

@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import * as serviceWorker from './serviceWorker';
 import AppBase from './App';
-import { BrowserRouter as Router, Route } from "react-router-dom";
+import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 import AfterAuthComponent from './AfterAuthComponent';
 import UserTrackComponent from './UserTracksComponent';
 
@@ -16,9 +16,12 @@ import 'react-table/react-table.css'
 const appRouter = (
   <Router>
     <div>
-      <Route exact path="/" component={AppBase}/>
-      <Route exact path="/after-auth" component={AfterAuthComponent}/>
-      <Route exact path="/user-tracks" component={UserTrackComponent}/>
+      <Switch>
+        <Route exact path="/" component={AppBase}/>
+        <Route exact path="/after-auth" component={AfterAuthComponent}/>
+        <Route exact path="/user-tracks" component={UserTrackComponent}/>
+        <Route component={() => <div style={{display: "flex", justifyContent: "center"}}>NOT FOUND</div>}/>
+      </Switch>
     </div>
   </Router>
 )

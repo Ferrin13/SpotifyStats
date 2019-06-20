@@ -40,7 +40,6 @@ class AfterAuthComponent extends React.Component {
   }
 
   render() {
-
     return( 
       this.state.authComplete ? 
       <Redirect to="/user-tracks"></Redirect>

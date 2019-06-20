@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Reflection.Metadata;
+using System.Security.Authentication;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Configuration;
@@ -38,7 +40,17 @@ namespace SpotifyStats.Services
         var msg = tokenRequestMessage(requestBody);
         var response = await httpClient.SendAsync(msg);
 
-        if (!response.IsSuccessStatusCode) { return false; }
+        if (!response.IsSuccessStatusCode)
+        {
+          throw new AuthenticationException(
+            $"Could not get status code with following request parameters:" +
+            $"ACCESS CODE: {accessCode}" +
+            $"REDIRECT_URL: {_config["AfterAuthRedirectUrl"]}" +
+            $"AUTHORIZATION_HEADER: {msg.Headers.Authorization.Parameter}" +
+            $"Response Text: {await response.Content.ReadAsStringAsync()}"
+          );
+          //return false;
+        }
 
         _tokenAcquisitionTime = DateTime.Now;
         _spotifyAuthorizationDto = await response.Content.ReadAsAsync<SpotifyAuthorizationDto>();

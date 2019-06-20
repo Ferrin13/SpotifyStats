@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Security.Authentication;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
@@ -33,9 +34,17 @@ namespace SpotifyStats.Controllers
     public async Task<ActionResult> ReceiveCode([FromBody]CodeObject codeObject)
     {
       var accessCode = codeObject.Code;
-      var acquiredToken = await _spotifyAuth.AcquireAccessToken(accessCode);
+      try
+      {
+        var acquiredToken = await _spotifyAuth.AcquireAccessToken(accessCode);
+        return Ok();
+      }
+      catch (AuthenticationException e)
+      {
+        return BadRequest($"Failed with error: \n{e}");
+      }
 
-      return acquiredToken ? (ActionResult) Ok() : BadRequest("Could not acquire access token with given code"); //This should have some more granular response types
+      //return acquiredToken ? (ActionResult) Ok() : BadRequest("Could not acquire access token with given code"); //This should have some more granular response types
     }
    
     public class CodeObject

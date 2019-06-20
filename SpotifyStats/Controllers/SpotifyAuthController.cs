@@ -36,15 +36,13 @@ namespace SpotifyStats.Controllers
       var accessCode = codeObject.Code;
       try
       {
-        var acquiredToken = await _spotifyAuth.AcquireAccessToken(accessCode);
+        await _spotifyAuth.AcquireAccessToken(accessCode);
         return Ok();
       }
       catch (AuthenticationException e)
       {
-        return BadRequest($"Failed with error: \n{e}");
+        return BadRequest($"Acquiring access code failed with error: {e}");
       }
-
-      //return acquiredToken ? (ActionResult) Ok() : BadRequest("Could not acquire access token with given code"); //This should have some more granular response types
     }
    
     public class CodeObject

@@ -37,6 +37,9 @@ namespace SpotifyStats
         .AddJsonFile("appsettings.json",
           optional: false,
           reloadOnChange: true)
+        .AddJsonFile("appsettings.Secrets.json",
+          optional: false,
+          reloadOnChange: false)
         .AddEnvironmentVariables();
 
       // ReSharper disable once ConvertIfStatementToConditionalTernaryExpression

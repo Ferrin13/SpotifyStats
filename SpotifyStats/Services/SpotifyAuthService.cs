@@ -26,7 +26,7 @@ namespace SpotifyStats.Services
     }
 
     public string AccessToken => _spotifyAuthorizationDto?.Access_Token;
-    public async Task<bool> AcquireAccessToken(string accessCode)
+    public async Task AcquireAccessToken(string accessCode)
     {
       var requestBody = new List<KeyValuePair<string, string>>()
       {
@@ -42,24 +42,15 @@ namespace SpotifyStats.Services
 
         if (!response.IsSuccessStatusCode)
         {
-          throw new AuthenticationException(
-            $"Could not get status code with following request parameters:" +
-            $"ACCESS CODE: {accessCode}" +
-            $"REDIRECT_URL: {_config["AfterAuthRedirectUrl"]}" +
-            $"AUTHORIZATION_HEADER: {msg.Headers.Authorization.Parameter}" +
-            $"Response Text: {await response.Content.ReadAsStringAsync()}"
-          );
-          //return false;
+          throw new AuthenticationException($"Request for access token from Spotify failed with response: {await response.Content.ReadAsStringAsync()}");
         }
 
         _tokenAcquisitionTime = DateTime.Now;
         _spotifyAuthorizationDto = await response.Content.ReadAsAsync<SpotifyAuthorizationDto>();
-        return true;
-
       }
     }
 
-    public async Task<bool> RefreshAccessToken()
+    public async Task RefreshAccessToken()
     {
       if(_spotifyAuthorizationDto == null) { throw new InvalidOperationException("Authorization object is null"); }
 
@@ -74,11 +65,13 @@ namespace SpotifyStats.Services
         var msg = tokenRequestMessage(requestBody);
         var response = await httpClient.SendAsync(msg);
 
-        if (!response.IsSuccessStatusCode) { return false; }
+        if (!response.IsSuccessStatusCode)
+        {
+          throw new AuthenticationException($"Request for access token from Spotify failed with response: {await response.Content.ReadAsStringAsync()}");
+        }
 
         _tokenAcquisitionTime = DateTime.Now;
         _spotifyAuthorizationDto = await response.Content.ReadAsAsync<SpotifyAuthorizationDto>();
-        return true;
       }
     }
 
@@ -95,7 +88,7 @@ namespace SpotifyStats.Services
 
     private HttpRequestMessage tokenRequestMessage(List<KeyValuePair<string, string>> requestBody)
     {
-      var clientKeyString = $"{_config["SpotifyClientId"]}:{_config["SPOTIFY_STATS_SPOTIFY_CLIENT_SECRET"]}";
+      var clientKeyString = $"{_config["SpotifyClientId"]}:{_config["SpotifyClientSecret"]}";
       var encodedClientKey = System.Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(clientKeyString));
 
       HttpRequestMessage msg = new HttpRequestMessage(HttpMethod.Post, _config["SpotifyTokenEndpoint"]);

@@ -30,9 +30,7 @@ namespace SpotifyStats.Services
       {
         new KeyValuePair<string, string>("grant_type", "authorization_code"),
         new KeyValuePair<string, string>("code", accessCode),
-        new KeyValuePair<string, string>("redirect_uri", _config["AfterAuthRedirectUrl"]),
-        new KeyValuePair<string, string>("client_id", _config["SpotifyClientId"]),
-        new KeyValuePair<string, string>("client_secret", _config["SpotifyClientSecret"]),
+        new KeyValuePair<string, string>("redirect_uri", _config["AfterAuthRedirectUrl"])
       };
 
       using (var httpClient = new HttpClient())
@@ -85,7 +83,7 @@ namespace SpotifyStats.Services
 
     private HttpRequestMessage tokenRequestMessage(List<KeyValuePair<string, string>> requestBody)
     {
-      var clientKeyString = $"{_config["SpotifyClientId"]}:{_config["SpotifyClientSecret"]}";
+      var clientKeyString = $"{_config["SpotifyClientId"]}:{_config["SPOTIFY_STATS_SPOTIFY_CLIENT_SECRET"]}";
       var encodedClientKey = System.Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(clientKeyString));
 
       HttpRequestMessage msg = new HttpRequestMessage(HttpMethod.Post, _config["SpotifyTokenEndpoint"]);

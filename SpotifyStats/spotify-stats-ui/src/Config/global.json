@@ -1,3 +1,5 @@
 {
-  "defaultTrackImgSize": 140
+  "defaultTrackImgSize": 140,
+  "clientId": "9283b48f67a94757b9c9a6f1e01f1599",
+  "spotifyAccountsUrl": "https://accounts.spotify.com"
 }

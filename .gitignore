@@ -260,5 +260,11 @@ paket-files/
 __pycache__/
 *.pyc
 
-#Don't Commit Secrets Publicly 
+#Don't commit secrets
 SpotifyStats/appsettings.Secrets.json
+SpotifyStats/CertInfo
+
+#Api Deplyoment Artifacts
+SpotifyStats/site.zip
+SpotifyStats/site/
+SpotifyStats/spotify-stats-deploy.zip

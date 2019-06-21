@@ -29,10 +29,6 @@ namespace SpotifyStats
     private object Resolve(Type type) => Kernel.Get(type);
     private object RequestScope(IContext context) => _scopeProvider.Value;
 
-    public Startup(IConfiguration configuration)
-    {
-      Configuration = configuration;
-    }
 
     public Startup(IHostingEnvironment env)
     {
@@ -41,11 +37,19 @@ namespace SpotifyStats
         .AddJsonFile("appsettings.json",
           optional: false,
           reloadOnChange: true)
+        .AddJsonFile("appsettings.Secrets.json",
+          optional: false,
+          reloadOnChange: false)
         .AddEnvironmentVariables();
 
+      // ReSharper disable once ConvertIfStatementToConditionalTernaryExpression
       if (env.IsDevelopment())
       {
-        builder.AddUserSecrets<Startup>();
+        builder.AddJsonFile("appsettings.Development.json");
+      }
+      else
+      {
+        builder.AddJsonFile("appsettings.Production.json");
       }
 
       Configuration = builder.Build();

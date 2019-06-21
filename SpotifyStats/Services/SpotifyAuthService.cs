@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Reflection.Metadata;
+using System.Security.Authentication;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Configuration;
@@ -24,15 +26,13 @@ namespace SpotifyStats.Services
     }
 
     public string AccessToken => _spotifyAuthorizationDto?.Access_Token;
-    public async Task<bool> AcquireAccessToken(string accessCode)
+    public async Task AcquireAccessToken(string accessCode)
     {
       var requestBody = new List<KeyValuePair<string, string>>()
       {
         new KeyValuePair<string, string>("grant_type", "authorization_code"),
         new KeyValuePair<string, string>("code", accessCode),
-        new KeyValuePair<string, string>("redirect_uri", _config["AfterAuthRedirectUrl"]),
-        new KeyValuePair<string, string>("client_id", _config["SpotifyClientId"]),
-        new KeyValuePair<string, string>("client_secret", _config["SpotifyClientSecret"]),
+        new KeyValuePair<string, string>("redirect_uri", _config["AfterAuthRedirectUrl"])
       };
 
       using (var httpClient = new HttpClient())
@@ -40,16 +40,17 @@ namespace SpotifyStats.Services
         var msg = tokenRequestMessage(requestBody);
         var response = await httpClient.SendAsync(msg);
 
-        if (!response.IsSuccessStatusCode) { return false; }
+        if (!response.IsSuccessStatusCode)
+        {
+          throw new AuthenticationException($"Request for access token from Spotify failed with response: {await response.Content.ReadAsStringAsync()}");
+        }
 
         _tokenAcquisitionTime = DateTime.Now;
         _spotifyAuthorizationDto = await response.Content.ReadAsAsync<SpotifyAuthorizationDto>();
-        return true;
-
       }
     }
 
-    public async Task<bool> RefreshAccessToken()
+    public async Task RefreshAccessToken()
     {
       if(_spotifyAuthorizationDto == null) { throw new InvalidOperationException("Authorization object is null"); }
 
@@ -64,11 +65,13 @@ namespace SpotifyStats.Services
         var msg = tokenRequestMessage(requestBody);
         var response = await httpClient.SendAsync(msg);
 
-        if (!response.IsSuccessStatusCode) { return false; }
+        if (!response.IsSuccessStatusCode)
+        {
+          throw new AuthenticationException($"Request for access token from Spotify failed with response: {await response.Content.ReadAsStringAsync()}");
+        }
 
         _tokenAcquisitionTime = DateTime.Now;
         _spotifyAuthorizationDto = await response.Content.ReadAsAsync<SpotifyAuthorizationDto>();
-        return true;
       }
     }
 

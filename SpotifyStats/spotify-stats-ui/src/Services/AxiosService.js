@@ -1,6 +1,6 @@
 //FROM https://gist.github.com/mariocesar/e96f6cf6cb2db213173a9c08b9a9867a
 import axios from "axios";
-var Config = require('../config')
+var config = require('../config')
 
 const singleton = Symbol();
 const singletonEnforcer = Symbol();
@@ -18,7 +18,7 @@ class AxiosService {
         }
 
         this.session = axios.create({
-            baseURL: `${Config.baseBackendUrl}`,
+            baseURL: `${config.baseBackendUrl}`,
             headers: {
               'Accept': 'application/json',
               'Content-Type': 'application/json',

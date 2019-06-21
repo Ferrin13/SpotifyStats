@@ -1,6 +1,6 @@
 import React from 'react';
 import { Redirect } from "react-router-dom";
-import axios from "./Services/AxiosService"
+import axios from "../services/axios-service"
 
 class AfterAuthComponent extends React.Component {
   constructor(props) {

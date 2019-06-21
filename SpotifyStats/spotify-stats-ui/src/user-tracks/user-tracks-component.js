@@ -1,65 +1,20 @@
 import React from 'react';
-import axios from "./Services/AxiosService"
+import axios from "../services/axios-service"
 import ReactTable from 'react-table'
-import MeterBar from "./Utilities/MeterBarComponent"
-import './UserTracksComponent.css'
-import UserSummaryComponent from './UserSummaryComponent';
-import LoadingSpinnerComponent from './Utilities/LoadingSpinnerComponent'
-var config = require('./config')
+import MeterBar from "../utilities/meter-bar-component"
+import './user-tracks-component.css'
+import UserSummaryComponent from '../user-summary/user-summary-component';
+import LoadingSpinnerComponent from '../utilities/loading-spinner-component'
+import {fetchTracksWithFeatures, fetchTracksSummary, toggleTracksSummary, sortTracksBy, setSortObjectList} from './user-tracks-actions'
+import {connect} from 'react-redux'
+var config = require('../config')
 
 class UserTrackComponent extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      tracksWithFeatures: [],
-      sortObjectList: [],
-      sortDescDictionary: {},
-      selectedSortDesc: {},
-      userLibrarySummary: {},
-      showSummary: true,
-      loadingTracks: true,
-      loadingSummary: true
-    }
-  }
 
   componentDidMount() {
     this.refreshTracks()
-    .then(() => this.loadTracks(this.loadLibrarySummary));
-  }
-
-  switchSort = (sortId) => {
-    var desc = this.state.sortDescDictionary[sortId] != null ? this.state.sortDescDictionary[sortId] : true
-    this.setState(prevState => ({
-      sortObjectList: [{id: sortId, desc: desc}],
-      sortDescDictionary : {
-        // ...prevState.sortDescDictionary, 
-        [sortId]: !desc
-      },
-      selectedSortDesc : {
-        [sortId]: true
-      }  
-    }))
-  }
-
-  loadTracks = (afterLoad) => {
-    axios.get(`/spotify/user-tracks`)
-    .then(json => {
-      this.setState({
-        tracksWithFeatures: json.data,
-        loadingTracks: false
-      });
-      return afterLoad();
-    })
-  }
-
-  loadLibrarySummary = () => {
-    axios.get(`/spotify/tracks-summary`)
-    .then(json => {
-      this.setState({
-        userLibrarySummary: json.data,
-        loadingSummary: false
-      })
-    })
+      .then(() => this.props.fetchTracksWithFeatures())
+      .then(() => this.props.fetchTracksSummary());
   }
 
   refreshTracks = () => {
@@ -83,14 +38,10 @@ class UserTrackComponent extends React.Component {
   }
 
   getSortButtonClass(colName) {
-    if(this.state.selectedSortDesc[colName.toLowerCase()]) {
-      return this.state.sortDescDictionary[colName.toLowerCase()] ? 'btn-secondary' : 'btn-primary'
+    if(this.props.sortDescDictionary && this.props.sortDescDictionary[colName.toLowerCase()] !== undefined) {
+      return this.props.sortDescDictionary[colName.toLowerCase()] ? 'btn-secondary' : 'btn-primary'
     }
     return('');
-  }
-
-  toggleShowSummary = () => {
-    this.setState({showSummary: !this.state.showSummary})
   }
 
   getListColumns = () => {
@@ -168,7 +119,7 @@ class UserTrackComponent extends React.Component {
   }
 
   getListData = () => {
-    return this.state.tracksWithFeatures.map(twf => ({
+    return this.props.tracksWithFeatures.map(twf => ({
       artist: (twf.track.artistNames).join(', '),
       acousticness: twf.features.acousticness,
       danceability: twf.features.danceability,
@@ -187,7 +138,7 @@ class UserTrackComponent extends React.Component {
   render() {
     let listData = [];
     let listColumns = this.getListColumns();
-    let tracksLoaded = this.state.tracksWithFeatures && this.state.tracksWithFeatures.length > 0
+    let tracksLoaded = this.props.tracksWithFeatures && this.props.tracksWithFeatures.length > 0
     if(tracksLoaded) {
       listData = this.getListData()
     }
@@ -196,12 +147,12 @@ class UserTrackComponent extends React.Component {
       <div style={{display: "flex", justifyContent: "center" }}>
         <div style={{width: "100%", padding: "25px", maxWidth: "1500px"}}>
           <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}>
-            <div>{this.state.tracksWithFeatures ? this.state.tracksWithFeatures.length: "No"} tracks loaded</div>
-            <button disabled={!this.state.userLibrarySummary.trackAverages} className="btn btn-primary" onClick={this.toggleShowSummary}>{this.state.showSummary ? "Hide" : "Show"} Summary</button>
-            {this.state.loadingSummary ?
+            <div>{this.props.tracksWithFeatures ? this.props.tracksWithFeatures.length: "No"} tracks loaded</div>
+            <button disabled={!this.props.userTracksSummary} className="btn btn-primary" onClick={this.props.toggleTracksSummary}>{this.props.showSummary ? "Hide" : "Show"} Summary</button>
+            {this.props.summaryLoading ?
               <LoadingSpinnerComponent size={100} style={{margin: "15px"}}></LoadingSpinnerComponent>
-              : this.state.showSummary && this.state.userLibrarySummary.libraryInfo && 
-                <UserSummaryComponent librarySummary={this.state.userLibrarySummary}></UserSummaryComponent>}
+              : this.props.showSummary && this.props.userTracksSummary && 
+                <UserSummaryComponent librarySummary={this.props.userTracksSummary}></UserSummaryComponent>}
 
             <span style={{paddingTop: "20px"}} >Sort By:</span>
             <div  style={{maxWidth: "900px"}}>
@@ -211,7 +162,7 @@ class UserTrackComponent extends React.Component {
                       <div key={index} className='col-lg-auto' style={{display: "flex", justifyContent: "center"}}> 
                         <button 
                           className={`btn ${this.getSortButtonClass(colName)}`} 
-                          onClick={() => this.switchSort(colName.toLowerCase())}>
+                          onClick={() => this.props.sortTracksBy(colName.toLowerCase())/*Infuriatingly, this prevents separating the table into a dumb component */}>
                             {colName}
                         </button>
                       </div>
@@ -221,11 +172,11 @@ class UserTrackComponent extends React.Component {
             </div>
           </div>
           <div className="list-container">
-            {this.state.loadingTracks ?
+            {this.props.tracksLoading ?
               <LoadingSpinnerComponent size={200} style={{margin: "15px"}}></LoadingSpinnerComponent>
               : tracksLoaded && <ReactTable defaultSortMethod={this.sortMethod}
-                  sorted={this.state.sortObjectList}
-                  onSortedChange={sorted => {this.setState({sortObjectList: sorted})}}
+                  sorted={this.props.sortObjectList}
+                  onSortedChange={sorted => this.props.setSortObjectList(sorted)}
                   data={listData}
                   columns={listColumns}>
                 </ReactTable>
@@ -237,4 +188,10 @@ class UserTrackComponent extends React.Component {
   }
 }
 
-export default UserTrackComponent
+const mapStateToProps = state => {
+  return state.userTracksState
+}
+
+const mapDispatchToProps = {fetchTracksWithFeatures, fetchTracksSummary, toggleTracksSummary, sortTracksBy, setSortObjectList}
+
+export default connect(mapStateToProps, mapDispatchToProps)(UserTrackComponent)

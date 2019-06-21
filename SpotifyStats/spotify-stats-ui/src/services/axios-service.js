@@ -1,5 +1,5 @@
 //FROM https://gist.github.com/mariocesar/e96f6cf6cb2db213173a9c08b9a9867a
-import axios from "axios";
+import axios from 'axios';
 var config = require('../config')
 
 const singleton = Symbol();

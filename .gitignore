@@ -262,6 +262,7 @@ __pycache__/
 
 #Don't commit secrets
 SpotifyStats/appsettings.Secrets.json
+SpotifyStats/CertInfo
 
 #Api Deplyoment Artifacts
 SpotifyStats/site.zip

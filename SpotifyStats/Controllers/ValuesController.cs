@@ -14,7 +14,7 @@ namespace SpotifyStats.Controllers
     [HttpGet]
     public ActionResult<IEnumerable<string>> Get()
     {
-      return new string[] { "A Different Value", "Another Different Value" };
+      return new string[] { "Once More A Different Value", "Another Different Value" };
     }
 
     // GET api/values/5

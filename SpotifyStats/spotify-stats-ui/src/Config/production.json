@@ -1,4 +1,4 @@
 {
-  "baseBackendUrl": "https://spotify-stats.us-east-1.elasticbeanstalk.com/api",
+  "baseBackendUrl": "http://spotify-stats.us-east-1.elasticbeanstalk.com/api",
   "baseUrl": "https://release.d3tow2tyc458tj.amplifyapp.com"
 }

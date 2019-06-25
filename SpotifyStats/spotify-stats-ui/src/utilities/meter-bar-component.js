@@ -1,5 +1,5 @@
 import React from 'react';
-import './MeterBarComponent.css'
+import './meter-bar-component.css'
 
 class MeterBarComponent extends React.Component {
   render() {

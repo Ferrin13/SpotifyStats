@@ -1,5 +1,4 @@
 import React from 'react';
-import { connect } from 'react-redux'
 
 var config = require('./config')
 
@@ -31,23 +30,4 @@ function AppBase() {
   );
 }
 
-const updateVals = (val1 = "Val1", val2 = "Val2") => {
-  return {
-    type: "UPDATE_VALS",
-    vals: [val1, val2]
-  }
-}
-
-const mapStateToProps = (state) => {
-  return {
-    propVal1: state.val1,
-    propVal2: state.val2
-  }
-}
-
-const mapDispatchToProps = { updateVals }
-
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(AppBase);
+export default AppBase

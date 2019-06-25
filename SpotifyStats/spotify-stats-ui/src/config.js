@@ -1,11 +1,11 @@
 const merge = require('lodash/merge');
-const global = require('./Config/global');
+const global = require('./config/global');
 
 let env; 
 if (process.env.NODE_ENV === 'development') {
-    env = require('./Config/development');
+    env = require('./config/development');
 } else {
-    env = require('./Config/production');
+    env = require('./config/production');
 }
 
 module.exports = merge(global, env);

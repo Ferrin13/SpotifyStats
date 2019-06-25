@@ -2,6 +2,7 @@ import { createStore, combineReducers, applyMiddleware, compose } from 'redux'
 import thunkMiddleware from 'redux-thunk'
 import { createLogger } from 'redux-logger'
 import userTracksReducer from './user-tracks/user-tracks-reducers'
+import authReducer from './auth/auth-reducers'
 
 const reducerTest = (state = {}, action) => {
   switch (action.type) {
@@ -14,6 +15,7 @@ const reducerTest = (state = {}, action) => {
 
 const baseReducer = combineReducers({
   testVals: reducerTest, 
+  authState: authReducer,
   userTracksState: userTracksReducer
 })
 

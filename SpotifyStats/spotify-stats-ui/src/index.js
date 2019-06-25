@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import * as serviceWorker from './serviceWorker';
 import AppBase from './app';
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
-import AfterAuthComponent from './Auth/AfterAuthComponent';
+import AfterAuthComponent from './auth/after-auth-component';
 import UserTrackComponent from './user-tracks/user-tracks-component';
 import {Provider} from 'react-redux'
 import store from './store'

@@ -4,17 +4,7 @@ import { createLogger } from 'redux-logger'
 import userTracksReducer from './user-tracks/user-tracks-reducers'
 import authReducer from './auth/auth-reducers'
 
-const reducerTest = (state = {}, action) => {
-  switch (action.type) {
-    case 'UPDATE_VALS':
-      return {"val1": action.vals[0], "val2": action.vals[1]}
-    default: 
-      return state
-  }
-}
-
 const baseReducer = combineReducers({
-  testVals: reducerTest, 
   authState: authReducer,
   userTracksState: userTracksReducer
 })

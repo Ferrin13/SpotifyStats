@@ -1,5 +1,4 @@
 import axios from "axios";
-import { NONAME } from "dns";
 
 const initialState = { lyrics: "", searching: false, modal: false, title: "title", artist: "artist"   };
 

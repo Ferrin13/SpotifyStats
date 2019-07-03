@@ -1,5 +1,4 @@
 import React from 'react';
-import { bindActionCreators } from 'redux';
 import axios from "../services/axios-service"
 import ReactTable from 'react-table'
 import MeterBar from "../utilities/meter-bar-component"
@@ -7,12 +6,9 @@ import './user-tracks-component.css'
 import UserSummaryComponent from '../user-summary/user-summary-component';
 import LoadingSpinnerComponent from '../utilities/loading-spinner-component'
 import { fetchTracksWithFeatures, fetchTracksSummary, toggleTracksSummary, sortTracksBy, setSortObjectList } from './user-tracks-actions'
-// import { requestLyrics } from "../lyrics/lyrics-reducers"
 import { actionCreators } from "../lyrics/lyrics-reducers"
 import { connect } from 'react-redux'
 import Lyrics from '../lyrics/Lyrics'
-import Modal from 'react-bootstrap/Modal'
-import Button from 'react-bootstrap/Button'
 var config = require('../config')
 
 class UserTrackComponent extends React.Component {

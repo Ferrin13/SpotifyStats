@@ -4,7 +4,6 @@ import { connect } from 'react-redux';
 import { actionCreators } from './lyrics-reducers';
 import Modal from 'react-bootstrap/Modal'
 import Button from 'react-bootstrap/Button'
-// import { requestLyrics } from "./lyrics-reducers"
 
 class Lyrics extends Component {
 
@@ -58,10 +57,6 @@ class Lyrics extends Component {
     );
   }
 }
-
-// const mapDispatchToProps = {
-//   requestLyrics
-// }
 
 
 export default connect(

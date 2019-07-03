@@ -5,8 +5,10 @@ import MeterBar from "../utilities/meter-bar-component"
 import './user-tracks-component.css'
 import UserSummaryComponent from '../user-summary/user-summary-component';
 import LoadingSpinnerComponent from '../utilities/loading-spinner-component'
-import {fetchTracksWithFeatures, fetchTracksSummary, toggleTracksSummary, sortTracksBy, setSortObjectList} from './user-tracks-actions'
-import {connect} from 'react-redux'
+import { fetchTracksWithFeatures, fetchTracksSummary, toggleTracksSummary, sortTracksBy, setSortObjectList } from './user-tracks-actions'
+import { actionCreators } from "../lyrics/lyrics-reducers"
+import { connect } from 'react-redux'
+import Lyrics from '../lyrics/Lyrics'
 var config = require('../config')
 
 class UserTrackComponent extends React.Component {
@@ -28,20 +30,20 @@ class UserTrackComponent extends React.Component {
   //Slightly gheto normalization
   loudnessToPercent(loudness) {
     const MIN_LOUDNESS = -30; //Docs say -60, but lowest example in my library is -23
-    return Math.round((1 - (loudness/MIN_LOUDNESS))*100) 
+    return Math.round((1 - (loudness / MIN_LOUDNESS)) * 100)
   }
 
   //Also gheto normalization
   tempoToPercent(tempo) {
     const MAX_TEMPO = 200; //This is pretty much completely arbitrary 
-    return Math.round((tempo/MAX_TEMPO) * 100);
+    return Math.round((tempo / MAX_TEMPO) * 100);
   }
 
-  getSortButtonClass(colAccessor) {
-    if(this.props.sortDescDictionary && this.props.sortDescDictionary[colAccessor] !== undefined) {
-      return this.props.sortDescDictionary[colAccessor] ? 'btn-secondary' : 'btn-primary'
+  getSortButtonClass(colName) {
+    if (this.props.userTracksState.sortDescDictionary && this.props.userTracksState.sortDescDictionary[colName.toLowerCase()] !== undefined) {
+      return this.props.userTracksState.sortDescDictionary[colName.toLowerCase()] ? 'btn-secondary' : 'btn-primary'
     }
-    return('');
+    return ('');
   }
 
   getListColumns = () => {
@@ -50,24 +52,71 @@ class UserTrackComponent extends React.Component {
         Header: '',
         Cell: (row) => {
           return row.original.image &&
-            <div className='ablbum-img-container'>
-              <img alt="" height={config.defaultTrackImgSize} src={row.original.image.url}/>
+            <div style={{
+              justifyContent: "centered",
+              justifyItems: "centerd",
+              display: "flex",
+              flexDirection: "column"
+            }}>
+              <div className='ablbum-img-container' onClick={() => { this.props.requestLyrics(row.original.artist, row.original.title) }}>
+                <img alt="" height={config.defaultTrackImgSize} src={row.original.image.url} />
+              </div>
             </div>
         },
         id: 'trackImage',
         width: config.defaultTrackImgSize
       }, {
+        Header: 'Details',
+        Cell: (row) => {
+          return (
+            <div style={{
+              justifyContent: "centered",
+              justifyItems: "centerd",
+              display: "flex",
+              flexDirection: "column"
+            }}>
+              <div onClick={() => { this.props.requestLyrics(row.original.artist, row.original.title) }}>
+                <div>
+                  <span style={{ color: "grey" }}>Title: </span>
+                  <h6>
+                    {row.original.title}
+                  </h6>
+                </div>
+
+                <div>
+                  <span style={{ color: "grey" }}>Artist: </span>
+                  <h6>
+                    {row.original.artist}
+                  </h6>
+                </div>
+
+                <div>
+                  <span style={{ color: "grey" }}>Release: </span>
+                  <h6>
+                    {row.original.releaseDate}
+                  </h6>
+                </div>
+              </div>
+            </div>
+          )
+        },
+        id: 'trackImage',
+        width: 200
+      }, {
         Header: 'Title',
         accessor: 'title',
-        width: 300
+        width: 200,
+        show: false
       }, {
         Header: 'Artist',
         accessor: 'artist',
-        width: 300
+        width: 200,
+        show: false
       }, {
         Header: 'Release Date',
         accessor: 'releaseDate',
-        width: 200
+        width: 200,
+        show: false
       }, {
         Header: 'Acousticness',
         accessor: 'acousticness',
@@ -101,8 +150,12 @@ class UserTrackComponent extends React.Component {
         accessor: 'valence',
         show: false
       }, {
-        Header: '',
-        Cell: (row) => 
+        Header: 'Tempo',
+        accessor: 'tempo',
+        show: false
+      }, {
+        Header: 'Stats',
+        Cell: (row) =>
           <div>
             <MeterBar percent={this.doubleToPercent(row.original.acousticness)} title="Acousticness"></MeterBar>
             <MeterBar percent={this.doubleToPercent(row.original.danceability)} title="Danceability"></MeterBar>
@@ -115,11 +168,11 @@ class UserTrackComponent extends React.Component {
           </div>,
         minWidth: 400
       }
-    ]; 
+    ];
   }
 
   getListData = () => {
-    return this.props.tracksWithFeatures.map(twf => ({
+    return this.props.userTracksState.tracksWithFeatures.map(twf => ({
       artist: (twf.track.artistNames).join(', '),
       acousticness: twf.features.acousticness,
       danceability: twf.features.danceability,
@@ -131,56 +184,56 @@ class UserTrackComponent extends React.Component {
       releaseDate: twf.track.releaseDate,
       tempo: twf.features.tempo,
       title: twf.track.name,
-      valence: twf.features.valence
+      valence: twf.features.valence,
     }));
   }
 
   render() {
     let listData = [];
     let listColumns = this.getListColumns();
-    let tracksLoaded = this.props.tracksWithFeatures && this.props.tracksWithFeatures.length > 0
-    if(tracksLoaded) {
+    let tracksLoaded = this.props.userTracksState.tracksWithFeatures && this.props.userTracksState.tracksWithFeatures.length > 0
+    if (tracksLoaded) {
       listData = this.getListData()
     }
     let sortHeaders = ['Acousticness', 'Danceability', 'Energy', 'Instrumentalness', 'Loudness', 'Popularity', 'Tempo', 'Valence']
 
-    return(
-      <div style={{display: "flex", justifyContent: "center" }}>
-        <div style={{width: "100%", padding: "25px", maxWidth: "1500px"}}>
-          <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}>
-            <div>{this.props.tracksWithFeatures ? this.props.tracksWithFeatures.length: "No"} tracks loaded</div>
-            <button disabled={!this.props.userTracksSummary} className="btn btn-primary" onClick={this.props.toggleTracksSummary}>{this.props.showSummary ? "Hide" : "Show"} Summary</button>
-            {this.props.summaryLoading ?
-              <LoadingSpinnerComponent size={100} style={{margin: "15px"}}></LoadingSpinnerComponent>
-              : this.props.showSummary && this.props.userTracksSummary && 
-                <UserSummaryComponent librarySummary={this.props.userTracksSummary}></UserSummaryComponent>}
-
-            <span style={{paddingTop: "20px"}} >Sort By:</span>
-            <div  style={{maxWidth: "900px"}}>
+    return (
+      <div style={{ display: "flex", justifyContent: "center" }}>
+        <div style={{ width: "100%", padding: "25px", maxWidth: "1500px" }}>
+          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+            <div>{this.props.userTracksState.tracksWithFeatures ? this.props.userTracksState.tracksWithFeatures.length : "No"} tracks loaded</div>
+            <button disabled={!this.props.userTracksState.userTracksSummary} className="btn btn-primary" onClick={this.props.userTracksState.toggleTracksSummary}>{this.props.userTracksState.showSummary ? "Hide" : "Show"} Summary</button>
+            {this.props.userTracksState.summaryLoading ?
+              <LoadingSpinnerComponent size={100} style={{ margin: "15px" }}></LoadingSpinnerComponent>
+              : this.props.userTracksState.showSummary && this.props.userTracksState.userTracksSummary &&
+              <UserSummaryComponent librarySummary={this.props.userTracksState.userTracksSummary}></UserSummaryComponent>}
+            <Lyrics />
+            <span style={{ paddingTop: "20px" }} >Sort By:</span>
+            <div style={{ maxWidth: "900px" }}>
               <div className='row no-gutters'>
-                  {
-                    this.getListColumns().filter(col => sortHeaders.indexOf(col.Header) >= 0).map((col, index) =>
-                        <div key={index} className='col-lg-auto' style={{display: "flex", justifyContent: "center"}}> 
-                          <button 
-                            className={`btn ${this.getSortButtonClass(col.accessor)}`} 
-                            onClick={() => this.props.sortTracksBy(col.accessor)/*Infuriatingly, this prevents separating the table into a presentational component */}>
-                              {col.Header}
-                          </button>
-                        </div>
-                    )
-                  }
+                {
+                  ['Acousticness', 'Danceability', 'Energy', 'Instrumentalness', 'Loudness', 'Popularity', 'Tempo', 'Valence'].map((colName, index) =>
+                    <div key={index} className='col-lg-auto' style={{ display: "flex", justifyContent: "center" }}>
+                      <button
+                        className={`btn ${this.getSortButtonClass(colName)}`}
+                        onClick={() => this.props.sortTracksBy(colName.toLowerCase())/*Infuriatingly, this prevents separating the table into a dumb component */}>
+                        {colName}
+                      </button>
+                    </div>
+                  )
+                }
               </div>
             </div>
           </div>
           <div className="list-container">
-            {this.props.tracksLoading ?
-              <LoadingSpinnerComponent size={200} style={{margin: "15px"}}></LoadingSpinnerComponent>
+            {this.props.userTracksState.tracksLoading ?
+              <LoadingSpinnerComponent size={200} style={{ margin: "15px" }}></LoadingSpinnerComponent>
               : tracksLoaded && <ReactTable defaultSortMethod={this.sortMethod}
-                  sorted={this.props.sortObjectList}
-                  onSortedChange={sorted => this.props.setSortObjectList(sorted)}
-                  data={listData}
-                  columns={listColumns}>
-                </ReactTable>
+                sorted={this.props.userTracksState.sortObjectList}
+                onSortedChange={sorted => this.props.setSortObjectList(sorted)}
+                data={listData}
+                columns={listColumns}>
+              </ReactTable>
             }
           </div>
         </div>
@@ -189,10 +242,9 @@ class UserTrackComponent extends React.Component {
   }
 }
 
-const mapStateToProps = state => {
-  return state.userTracksState
-}
+const mapDispatchToProps = { fetchTracksWithFeatures, fetchTracksSummary, toggleTracksSummary, sortTracksBy, setSortObjectList, ...actionCreators }
 
-const mapDispatchToProps = {fetchTracksWithFeatures, fetchTracksSummary, toggleTracksSummary, sortTracksBy, setSortObjectList}
-
-export default connect(mapStateToProps, mapDispatchToProps)(UserTrackComponent)
+export default connect(
+  state => state,
+  mapDispatchToProps,
+)(UserTrackComponent);

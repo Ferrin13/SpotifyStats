@@ -31,8 +31,6 @@ export const actionCreators = {
             lyrics = await response;
         }
 
-        console.log("artist: " + artist + " title: " + title)
-
         dispatch({ type: recieveLyrics, artist, title, lyrics });
 
     }

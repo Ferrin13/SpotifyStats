@@ -118,8 +118,8 @@ class UserTrackComponent extends React.Component {
         width: 200,
         show: false
       }, {
-        Header: 'Popularity',
-        accessor: 'popularity',
+        Header: 'Acousticness',
+        accessor: 'acousticness',
         show: false
       }, {
         Header: 'Danceability',
@@ -130,16 +130,20 @@ class UserTrackComponent extends React.Component {
         accessor: 'energy',
         show: false
       }, {
+        Header: 'Instrumentalness',
+        accessor: 'instrumentalness',
+        show: false
+      }, {
         Header: 'Loudness',
         accessor: 'loudness',
         show: false
       }, {
-        Header: 'Acousticness',
-        accessor: 'acousticness',
+        Header: 'Popularity',
+        accessor: 'popularity',
         show: false
       }, {
-        Header: 'Instrumentalness',
-        accessor: 'instrumentalness',
+        Header: 'Tempo',
+        accessor: 'tempo',
         show: false
       }, {
         Header: 'Valence',
@@ -154,8 +158,8 @@ class UserTrackComponent extends React.Component {
         Cell: (row) =>
           <div>
             <MeterBar percent={this.doubleToPercent(row.original.acousticness)} title="Acousticness"></MeterBar>
-            <MeterBar percent={this.doubleToPercent(row.original.energy)} title="Energy"></MeterBar>
             <MeterBar percent={this.doubleToPercent(row.original.danceability)} title="Danceability"></MeterBar>
+            <MeterBar percent={this.doubleToPercent(row.original.energy)} title="Energy"></MeterBar>
             <MeterBar percent={this.doubleToPercent(row.original.instrumentalness)} title="Instrumentalness"></MeterBar>
             <MeterBar percent={this.loudnessToPercent(row.original.loudness)} title="Loudness"></MeterBar>
             <MeterBar percent={row.original.popularity} title="Popularity"></MeterBar>
@@ -191,6 +195,7 @@ class UserTrackComponent extends React.Component {
     if (tracksLoaded) {
       listData = this.getListData()
     }
+    let sortHeaders = ['Acousticness', 'Danceability', 'Energy', 'Instrumentalness', 'Loudness', 'Popularity', 'Tempo', 'Valence']
 
     return (
       <div style={{ display: "flex", justifyContent: "center" }}>

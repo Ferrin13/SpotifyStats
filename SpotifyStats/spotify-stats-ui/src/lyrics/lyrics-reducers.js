@@ -14,7 +14,6 @@ export const actionCreators = {
     toggleSearch: () => ({ type: toggleSearch }),
     requestLyrics: (artist, title) => async (dispatch) => {
 
-        console.log("artist: " + artist + " title: " + title)
         dispatch({ type: callLyrics, artist, title });
 
         let apikey = 'EawCwK89ZMoTgplpHx6Dua7xE5p6ROiPUsZIfeFvWeSgMmBApwd0K5uwl4cbR8Vk';

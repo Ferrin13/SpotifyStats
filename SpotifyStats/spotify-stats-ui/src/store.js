@@ -3,9 +3,11 @@ import thunkMiddleware from 'redux-thunk'
 import { createLogger } from 'redux-logger'
 import userTracksReducer from './user-tracks/user-tracks-reducers'
 import authReducer from './auth/auth-reducers'
+import * as lyrics from './lyrics/lyrics-reducers'
 
 const baseReducer = combineReducers({
   authState: authReducer,
+  lyricsReducer: lyrics.reducer,
   userTracksState: userTracksReducer
 })
 

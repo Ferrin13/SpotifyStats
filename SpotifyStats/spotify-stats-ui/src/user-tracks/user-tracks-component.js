@@ -37,9 +37,9 @@ class UserTrackComponent extends React.Component {
     return Math.round((tempo/MAX_TEMPO) * 100);
   }
 
-  getSortButtonClass(colName) {
-    if(this.props.sortDescDictionary && this.props.sortDescDictionary[colName.toLowerCase()] !== undefined) {
-      return this.props.sortDescDictionary[colName.toLowerCase()] ? 'btn-secondary' : 'btn-primary'
+  getSortButtonClass(colAccessor) {
+    if(this.props.sortDescDictionary && this.props.sortDescDictionary[colAccessor] !== undefined) {
+      return this.props.sortDescDictionary[colAccessor] ? 'btn-secondary' : 'btn-primary'
     }
     return('');
   }
@@ -69,8 +69,8 @@ class UserTrackComponent extends React.Component {
         accessor: 'releaseDate',
         width: 200
       }, {
-        Header: 'Popularity',
-        accessor: 'popularity',
+        Header: 'Acousticness',
+        accessor: 'acousticness',
         show: false
       }, {
         Header: 'Danceability',
@@ -81,32 +81,32 @@ class UserTrackComponent extends React.Component {
         accessor: 'energy',
         show: false
       }, {
-        Header: 'Loudness',
-        accessor: 'loudness',
-        show: false
-      }, {
-        Header: 'Acousticness',
-        accessor: 'acousticness',
-        show: false
-      }, {
         Header: 'Instrumentalness',
         accessor: 'instrumentalness',
         show: false
       }, {
-        Header: 'Valence',
-        accessor: 'valence',
+        Header: 'Loudness',
+        accessor: 'loudness',
+        show: false
+      }, {
+        Header: 'Popularity',
+        accessor: 'popularity',
         show: false
       }, {
         Header: 'Tempo',
         accessor: 'tempo',
         show: false
       }, {
+        Header: 'Valence',
+        accessor: 'valence',
+        show: false
+      }, {
         Header: '',
         Cell: (row) => 
           <div>
             <MeterBar percent={this.doubleToPercent(row.original.acousticness)} title="Acousticness"></MeterBar>
-            <MeterBar percent={this.doubleToPercent(row.original.energy)} title="Energy"></MeterBar>
             <MeterBar percent={this.doubleToPercent(row.original.danceability)} title="Danceability"></MeterBar>
+            <MeterBar percent={this.doubleToPercent(row.original.energy)} title="Energy"></MeterBar>
             <MeterBar percent={this.doubleToPercent(row.original.instrumentalness)} title="Instrumentalness"></MeterBar>
             <MeterBar percent={this.loudnessToPercent(row.original.loudness)} title="Loudness"></MeterBar>
             <MeterBar percent={row.original.popularity} title="Popularity"></MeterBar>
@@ -142,6 +142,7 @@ class UserTrackComponent extends React.Component {
     if(tracksLoaded) {
       listData = this.getListData()
     }
+    let sortHeaders = ['Acousticness', 'Danceability', 'Energy', 'Instrumentalness', 'Loudness', 'Popularity', 'Tempo', 'Valence']
 
     return(
       <div style={{display: "flex", justifyContent: "center" }}>
@@ -158,14 +159,14 @@ class UserTrackComponent extends React.Component {
             <div  style={{maxWidth: "900px"}}>
               <div className='row no-gutters'>
                   {
-                    ['Acousticness', 'Danceability', 'Energy', 'Instrumentalness', 'Loudness', 'Popularity', 'Tempo', 'Valence'].map((colName, index) =>
-                      <div key={index} className='col-lg-auto' style={{display: "flex", justifyContent: "center"}}> 
-                        <button 
-                          className={`btn ${this.getSortButtonClass(colName)}`} 
-                          onClick={() => this.props.sortTracksBy(colName.toLowerCase())/*Infuriatingly, this prevents separating the table into a dumb component */}>
-                            {colName}
-                        </button>
-                      </div>
+                    this.getListColumns().filter(col => sortHeaders.indexOf(col.Header) >= 0).map((col, index) =>
+                        <div key={index} className='col-lg-auto' style={{display: "flex", justifyContent: "center"}}> 
+                          <button 
+                            className={`btn ${this.getSortButtonClass(col.accessor)}`} 
+                            onClick={() => this.props.sortTracksBy(col.accessor)/*Infuriatingly, this prevents separating the table into a presentational component */}>
+                              {col.Header}
+                          </button>
+                        </div>
                     )
                   }
               </div>
